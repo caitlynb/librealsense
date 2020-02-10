@@ -756,7 +756,17 @@ struct glfw_state {
 };
 
 // Handles all the OpenGL calls needed to display the point cloud
-void draw_pointcloud(float width, float height, glfw_state& app_state, rs2::points& points)
+
+
+void quat2mat(rs2_quaternion& q, GLfloat H[16])  // to column-major matrix
+{
+    H[0] = 1 - 2*q.y*q.y - 2*q.z*q.z; H[4] = 2*q.x*q.y - 2*q.z*q.w;     H[8] = 2*q.x*q.z + 2*q.y*q.w;     H[12] = 0.0f;
+    H[1] = 2*q.x*q.y + 2*q.z*q.w;     H[5] = 1 - 2*q.x*q.x - 2*q.z*q.z; H[9] = 2*q.y*q.z - 2*q.x*q.w;     H[13] = 0.0f;
+    H[2] = 2*q.x*q.z - 2*q.y*q.w;     H[6] = 2*q.y*q.z + 2*q.x*q.w;     H[10] = 1 - 2*q.x*q.x - 2*q.y*q.y; H[14] = 0.0f;
+    H[3] = 0.0f;                      H[7] = 0.0f;                      H[11] = 0.0f;                      H[15] = 1.0f;
+}
+
+extern void draw_pointcloud(float width, float height, glfw_state& app_state, rs2::points& points)
 {
     if (!points)
         return;
@@ -776,7 +786,7 @@ void draw_pointcloud(float width, float height, glfw_state& app_state, rs2::poin
     glPushMatrix();
     gluLookAt(0, 0, 0, 0, 0, 1, 0, -1, 0);
 
-    glTranslatef(0, 0, +0.5f + app_state.offset_y*0.05f);
+    glTranslatef(0, 0, +0.5f + app_state.offset_y * 0.05f);
     glRotated(app_state.pitch, 1, 0, 0);
     glRotated(app_state.yaw, 0, 1, 0);
     glTranslatef(0, 0, -0.5f);
@@ -811,14 +821,6 @@ void draw_pointcloud(float width, float height, glfw_state& app_state, rs2::poin
     glMatrixMode(GL_PROJECTION);
     glPopMatrix();
     glPopAttrib();
-}
-
-void quat2mat(rs2_quaternion& q, GLfloat H[16])  // to column-major matrix
-{
-    H[0] = 1 - 2*q.y*q.y - 2*q.z*q.z; H[4] = 2*q.x*q.y - 2*q.z*q.w;     H[8] = 2*q.x*q.z + 2*q.y*q.w;     H[12] = 0.0f;
-    H[1] = 2*q.x*q.y + 2*q.z*q.w;     H[5] = 1 - 2*q.x*q.x - 2*q.z*q.z; H[9] = 2*q.y*q.z - 2*q.x*q.w;     H[13] = 0.0f;
-    H[2] = 2*q.x*q.z - 2*q.y*q.w;     H[6] = 2*q.y*q.z + 2*q.x*q.w;     H[10] = 1 - 2*q.x*q.x - 2*q.y*q.y; H[14] = 0.0f;
-    H[3] = 0.0f;                      H[7] = 0.0f;                      H[11] = 0.0f;                      H[15] = 1.0f;
 }
 
 // Handles all the OpenGL calls needed to display the point cloud w.r.t. static reference frame
